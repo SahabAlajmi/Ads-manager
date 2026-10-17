@@ -111,7 +111,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
  <div class="ph">@by.sahaab</div>
  <h1>Ads Manager</h1>
  <div class="mn"><button id="pv" type="button" aria-label="Previous month">‹</button><div><b id="mt"></b></div><button id="nx" type="button" aria-label="Next month">›</button></div>
- <div class="stats"><div><b><span id="tg">0</span></b><span class="lb">عدد الإعلانات</span></div><div><b><span id="tt">0</span><i>SAR</i></b><span class="lb">مجموع الإعلانات</span><span class="lb sub">(الإعلانات المدفوعة فقط)</span></div><div><b><span id="ta">0</span><i>SAR</i></b><span class="lb">نسبة إدارة الأعمال ٣٠٪</span></div></div>
+ <div class="stats"><div><b><span id="tg">0</span></b><span class="lb">عدد الإعلانات</span></div><div><b><span id="tt">0</span><i>SAR</i></b><span class="lb">مجموع الإعلانات</span><span class="lb sub">(مجموع الإعلانات المدفوعة: <span id="tp">0</span> SAR)</span></div><div><b><span id="ta">0</span><i>SAR</i></b><span class="lb">نسبة إدارة الأعمال ٣٠٪</span><span class="lb sub">(نسبة الإعلانات المدفوعة: <span id="tpa">0</span> SAR)</span></div></div>
  <p class="nt" id="nt"></p>
 </div>
 <button class="add" id="add" type="button">+ إضافة إعلان</button>
@@ -153,8 +153,8 @@ function flushAll(){Object.keys(PEND).forEach(flush)}
 const inList=()=>{const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&a.matches("input,select")};
 function totals(){
  const k=key(),L=Object.entries(ADS).filter(([i,a])=>adM(a)===k);
- const t=L.filter(([i,a])=>a.paid).reduce((s,[i,a])=>s+amo(a),0);
- $("tt").textContent=fmt(t);$("tg").textContent=L.length;$("ta").textContent=fmt(t*RATE);
+ const t=L.reduce((s,[i,a])=>s+amo(a),0),p=L.filter(([i,a])=>a.paid).reduce((s,[i,a])=>s+amo(a),0);
+ $("tt").textContent=fmt(t);$("tg").textContent=L.length;$("ta").textContent=fmt(t*RATE);$("tp").textContent=fmt(p);$("tpa").textContent=fmt(p*RATE);
  document.querySelectorAll("[data-ag]").forEach(el=>{const a=ADS[el.dataset.ag];if(a)el.textContent=fmt(amo(a)*RATE)+" SAR"});
 }
 function card(id,a){
