@@ -28,6 +28,7 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .stats b span{font-size:inherit;color:inherit}
 .stats b i{font-style:normal;font-size:10px;font-weight:700;color:var(--mut)}
 .stats .lb{display:block;font-size:11px;color:var(--mut)}
+.stats .lb.sub{font-size:10px;margin-top:2px;opacity:.85}
 .nt{font-size:12px;color:var(--mut);margin:10px 0 0}
 .add{display:block;width:100%;margin:16px 0 4px;font:inherit;font-weight:700;font-size:15px;color:#fff;background:var(--ac);border:0;border-radius:22px;padding:13px;cursor:pointer}
 .ad{background:var(--card);border:1px solid var(--ln);border-radius:22px;padding:12px;margin-top:10px}
@@ -54,6 +55,11 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .cm{font-size:9px;color:var(--mut)}
 .cdt{margin-top:10px;background:var(--bg);border-radius:14px;padding:10px 12px;font-size:13px}
 .cdt div{margin-top:6px}
+.pay{display:flex;gap:6px;margin-top:4px}
+.pb{flex:1;font:inherit;font-size:13px;border:0;border-radius:20px;padding:9px 0;cursor:pointer;color:var(--mut);background:var(--bg)}
+.pb.on.ok{background:var(--ok);color:#fff;font-weight:700}
+.pb.on.wt{background:#f0b84a;color:#3d2c00;font-weight:700}
+.pill.wt{background:#f0b84a;color:#3d2c00}
 .sl{font-size:11px;color:var(--mut);margin-top:12px}
 .sl+.st{margin-top:4px}
 .ad select{font:inherit;font-size:14px;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:9px 11px;width:100%;min-width:0;height:42px;margin-top:3px;-webkit-appearance:none;appearance:none}
@@ -105,7 +111,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
  <div class="ph">@by.sahaab</div>
  <h1>Ads Manager</h1>
  <div class="mn"><button id="pv" type="button" aria-label="Previous month">‹</button><div><b id="mt"></b></div><button id="nx" type="button" aria-label="Next month">›</button></div>
- <div class="stats"><div><b><span id="tg">0</span></b><span class="lb">عدد الإعلانات</span></div><div><b><span id="tt">0</span><i>SAR</i></b><span class="lb">مجموع الإعلانات</span></div><div><b><span id="ta">0</span><i>SAR</i></b><span class="lb">نسبة إدارة الأعمال ٣٠٪</span></div></div>
+ <div class="stats"><div><b><span id="tg">0</span></b><span class="lb">عدد الإعلانات</span></div><div><b><span id="tt">0</span><i>SAR</i></b><span class="lb">مجموع الإعلانات</span><span class="lb sub">(الإعلانات المدفوعة فقط)</span></div><div><b><span id="ta">0</span><i>SAR</i></b><span class="lb">نسبة إدارة الأعمال ٣٠٪</span></div></div>
  <p class="nt" id="nt"></p>
 </div>
 <button class="add" id="add" type="button">+ إضافة إعلان</button>
@@ -147,7 +153,7 @@ function flushAll(){Object.keys(PEND).forEach(flush)}
 const inList=()=>{const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&a.matches("input,select")};
 function totals(){
  const k=key(),L=Object.entries(ADS).filter(([i,a])=>adM(a)===k);
- const t=L.reduce((s,[i,a])=>s+amo(a),0);
+ const t=L.filter(([i,a])=>a.paid).reduce((s,[i,a])=>s+amo(a),0);
  $("tt").textContent=fmt(t);$("tg").textContent=L.length;$("ta").textContent=fmt(t*RATE);
  document.querySelectorAll("[data-ag]").forEach(el=>{const a=ADS[el.dataset.ag];if(a)el.textContent=fmt(amo(a)*RATE)+" SAR"});
 }
@@ -163,7 +169,9 @@ function card(id,a){
 <label>تاريخ النشر<span class="dw"><input type="date" ${f("pub",' value="'+esc(a.pub)+'"')}>${RO||!a.pub?"":`<button type="button" class="cx" data-clr="${id}|pub" aria-label="Clear date">×</button>`}</span></label></div>
 <div class="sl">الحالة</div>
 <div class="st">${[["s","تصوير"],["e","مونتاج"],["p","نُشر"]].map(([n,l])=>`<label><input type="checkbox" ${f(n,a[n]?" checked":"")}>${l}</label>`).join("")}</div>
-<div class="fo"><span>نسبة إدارة الأعمال ٣٠٪: <b data-ag="${id}"></b></span><span class="pill ${st[1]}">${st[0]}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
+<div class="sl">حالة الدفع</div>
+<div class="pay"><button type="button" class="pb${a.paid?" on ok":""}" data-pay="${id}|1">مدفوع</button><button type="button" class="pb${a.paid?"":" on wt"}" data-pay="${id}|0">لم يتم الدفع</button></div>
+<div class="fo"><span>نسبة إدارة الأعمال ٣٠٪: <b data-ag="${id}"></b></span><span class="pill ${st[1]}">${st[0]}</span><span class="pill ${a.paid?"pub":"wt"}">${a.paid?"مدفوع":"لم يتم الدفع"}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
 }
 function render(){
  const k=key(),now=new Date(),end=new Date(cur.getFullYear(),cur.getMonth()+1,0,23,59,59);
@@ -220,6 +228,7 @@ function renderCal(){
  if(SEL&&ev[SEL])h+=`<div class="cdt"><b>${SEL} ${$("mt").textContent}</b>`+ev[SEL].map(x=>`<div><span class="dt ${x.f==="pub"?"p":"s"}"></span>${x.l}: ${esc(x.n)}</div>`).join("")+"</div>";
  $("cal").innerHTML=h}
 document.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest("[data-day]");if(!c)return;const d=+c.dataset.day;SEL=SEL===d?null:d;renderCal()});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-pay]");if(!b)return;const [id,v]=b.dataset.pay.split("|");if(!ADS[id])return;const val=v==="1";if(!!ADS[id].paid===val)return;ADS[id].paid=val;queue(id,"paid",val);flushAll();render()});
 $("add").onclick=()=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
  const a={name:"",amount:null,type:"",shoot:"",pub:"",m:key(),ord:Date.now()};ADS[id]=a;store.set(id,a).catch(fail);render();
  const el=document.querySelector('[data-id="'+id+'"][data-f="name"]');if(el)el.focus()};
