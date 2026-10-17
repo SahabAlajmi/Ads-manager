@@ -123,13 +123,13 @@ function card(id,a){
  const d=RO?" disabled":"",t=todayS();
  const st=a.p?["Posted","pub"]:a.pub?(a.pub<=t?["Published","pub"]:["Scheduled",""]):a.shoot?(a.shoot<=t?["Shot",""]:["To shoot",""]):["Draft",""];
  const f=(n,x)=>`data-id="${id}" data-f="${n}"${x||""}${d}`;
- const opts=['<option value="">اختاري النوع</option>'].concat([...TYPES,...(a.type&&!TYPES.includes(a.type)?[a.type]:[])].map(ty=>`<option${ty===a.type?" selected":""}>${esc(ty)}</option>`)).join("");
+ const opts=['<option value="">النوع</option>'].concat([...TYPES,...(a.type&&!TYPES.includes(a.type)?[a.type]:[])].map(ty=>`<option${ty===a.type?" selected":""}>${esc(ty)}</option>`)).join("");
  return `<div class="ad"><input class="nm" ${f("name",' placeholder="Ad name" value="'+esc(a.name)+'"')}>
 <div class="g2"><label>السعر (SAR)<input type="number" inputmode="decimal" min="0" step="any" ${f("amount",' value="'+(a.amount==null?"":esc(a.amount))+'"')}></label>
 <label>النوع<select ${f("type")}>${opts}</select></label></div>
 <div class="g2"><label>تاريخ التصوير<span class="dw"><input type="date" ${f("shoot",' value="'+esc(a.shoot)+'"')}>${RO||!a.shoot?"":`<button type="button" class="cx" data-clr="${id}|shoot" aria-label="Clear date">×</button>`}</span></label>
 <label>تاريخ النشر<span class="dw"><input type="date" ${f("pub",' value="'+esc(a.pub)+'"')}>${RO||!a.pub?"":`<button type="button" class="cx" data-clr="${id}|pub" aria-label="Clear date">×</button>`}</span></label></div>
-<div class="sl">Status</div>
+<div class="sl">الحالة</div>
 <div class="st">${[["s","تصوير"],["e","مونتاج"],["p","نُشر"]].map(([n,l])=>`<label><input type="checkbox" ${f(n,a[n]?" checked":"")}>${l}</label>`).join("")}</div>
 <div class="fo"><span class="pill ${st[1]}">${st[0]}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
 }
