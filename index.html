@@ -102,12 +102,12 @@ body.dragging{user-select:none;-webkit-user-select:none}
 #rv .ac{display:flex;gap:8px}
 #rv .ac button{flex:1;border:0;border-radius:12px;padding:9px;font:inherit;font-size:13px;font-weight:700;background:var(--soft);color:var(--ac);cursor:pointer}
 #rv .ac button.x{background:var(--bg);color:#c0392b}
-.pr{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:8px;margin-top:8px;font-size:12px}
-.pr .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pr{display:grid;grid-template-columns:92px 1fr auto;align-items:center;gap:8px;margin-top:8px;font-size:10px}
+.pr .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
 .pr .bt{height:14px;background:var(--bg);border-radius:7px;overflow:hidden;direction:ltr}
 .pr .bt i{display:block;height:100%;border-radius:7px;background:#f0b84a}
 .pr .bt i.ok{background:var(--ok)}
-.pr .pv{font-weight:700;color:var(--ac);direction:ltr;font-size:11.5px}
+.pr .pv{font-weight:700;color:var(--ac);direction:ltr;font-size:10px}
 .prl{display:flex;gap:12px;justify-content:center;font-size:11px;color:var(--mut);margin-top:8px}
 .prl span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#f0b84a;margin-inline-end:4px}
 .prl span.ok::before{background:var(--ok)}
@@ -253,10 +253,9 @@ document.addEventListener("pointerup",endDrag);document.addEventListener("pointe
 function renderPrices(){
  const k=key(),L=Object.values(ADS).filter(a=>adM(a)===k&&amo(a)>0).sort((x,y)=>amo(y)-amo(x));
  if(!L.length){$("pc").innerHTML='<div class="ct">أسعار الإعلانات</div><div class="prf">ما فيه إعلانات بسعر هالشهر</div>';return}
- const mx=amo(L[0]),cnt={};L.forEach(a=>{const v=amo(a);cnt[v]=(cnt[v]||0)+1});
+ const mx=amo(L[0]);
  let h='<div class="ct">أسعار الإعلانات</div><div class="prl"><span class="ok">مدفوع</span><span>لم يتم الدفع</span></div>';
  h+=L.map(a=>`<div class="pr"><span class="pn">${esc(a.name||"بدون اسم")}</span><span class="bt"><i class="${a.paid?"ok":""}" style="width:${Math.max(3,amo(a)/mx*100)}%"></i></span><span class="pv">${fmt(amo(a))}</span></div>`).join("");
- h+='<div class="prf"><b>تكرار الأسعار</b><br>'+Object.entries(cnt).sort((x,y)=>y[1]-x[1]||y[0]-x[0]).map(([v,c])=>`${fmt(+v)} SAR × <b>${c}</b>`).join(" &nbsp;·&nbsp; ")+"</div>";
  $("pc").innerHTML=h}
 function renderCal(){
  const y=cur.getFullYear(),m=cur.getMonth(),k=key(),first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),t=todayS(),ev={};
