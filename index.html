@@ -102,6 +102,17 @@ body.dragging{user-select:none;-webkit-user-select:none}
 #rv .ac{display:flex;gap:8px}
 #rv .ac button{flex:1;border:0;border-radius:12px;padding:9px;font:inherit;font-size:13px;font-weight:700;background:var(--soft);color:var(--ac);cursor:pointer}
 #rv .ac button.x{background:var(--bg);color:#c0392b}
+.pr{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+.pr .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pr .bt{height:14px;background:var(--bg);border-radius:7px;overflow:hidden;direction:ltr}
+.pr .bt i{display:block;height:100%;border-radius:7px;background:#f0b84a}
+.pr .bt i.ok{background:var(--ok)}
+.pr .pv{font-weight:700;color:var(--ac);direction:ltr;font-size:11.5px}
+.prl{display:flex;gap:12px;justify-content:center;font-size:11px;color:var(--mut);margin-top:8px}
+.prl span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#f0b84a;margin-inline-end:4px}
+.prl span.ok::before{background:var(--ok)}
+.prf{margin-top:12px;padding-top:10px;border-top:1px dashed var(--ln);font-size:12px;color:var(--mut);text-align:center;line-height:1.9}
+.prf b{color:var(--ac)}
 .pill{font-size:11px;font-weight:700;border-radius:10px;padding:2px 10px;background:var(--soft);color:var(--ac)}
 .pill.pub{background:var(--ok);color:#fff}
 .pill.sc{background:#4a8fe0;color:#fff}
@@ -138,6 +149,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
 <button class="add" id="add" type="button">+ إضافة إعلان</button>
 <div id="list"></div>
 <div class="cal" id="cal"></div>
+<div class="cal" id="pc"></div>
 <div id="rv"><div class="bx"><div class="t" id="rvt"></div><img id="rvi" alt=""><div class="ac"><button type="button" id="rvr">استبدال</button><button type="button" class="x" id="rvd">حذف</button><button type="button" id="rvc">إغلاق</button></div></div></div><input type="file" id="rf" accept="image/*" hidden>
 <div class="bn" id="bn"><span id="bnt"></span> <button class="so" id="so" type="button">Sign out</button></div>
 <div id="lg" class="on"><form id="lf" autocomplete="on">
@@ -202,11 +214,11 @@ function render(){
  $("nt").textContent=closed?"Month closed — final totals":curM?"Totals so far — final when the month ends":"Upcoming month";
  const L=Object.entries(ADS).filter(([i,a])=>adM(a)===k).sort((x,y)=>((typeof x[1].ord==="number"?x[1].ord:0)-(typeof y[1].ord==="number"?y[1].ord:0))||((x[1].pub||x[1].shoot||"9")+x[0]).localeCompare((y[1].pub||y[1].shoot||"9")+y[0]));
  $("list").innerHTML=L.length?L.map(([i,a])=>card(i,a)).join(""):'<div class="empty">No ads this month yet</div>';
- $("add").style.display=RO?"none":"block";renderCal();
+ $("add").style.display=RO?"none":"block";renderCal();renderPrices();
  totals();
 }
 document.addEventListener("input",e=>{const t=e.target,f=t.dataset&&t.dataset.f;if(!f)return;const id=t.dataset.id;if(!ADS[id])return;
- let v=t.type==="checkbox"?t.checked:t.value;if(f==="amount")v=v===""?null:parseFloat(v);ADS[id][f]=v;queue(id,f,v);totals();renderCal()});
+ let v=t.type==="checkbox"?t.checked:t.value;if(f==="amount")v=v===""?null:parseFloat(v);ADS[id][f]=v;queue(id,f,v);totals();renderCal();renderPrices()});
 document.addEventListener("change",e=>{const t=e.target,f=t.dataset&&t.dataset.f;if(f==="shoot"||f==="pub"||f==="s"||f==="e"||f==="p"){flushAll();render()}});
 document.addEventListener("focusout",()=>{setTimeout(()=>{if(inList())return;document.querySelectorAll("#list input[type=date]").forEach(el=>{const id=el.dataset.id,f=el.dataset.f;if(ADS[id]&&(ADS[id][f]||"")!==el.value){ADS[id][f]=el.value;queue(id,f,el.value)}});flushAll();if(DEFER&&!DIRTY&&SNAP)ADS=SNAP;DEFER=false;DIRTY=false;render()},60)});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-del]");if(!b)return;
@@ -238,6 +250,14 @@ function endDrag(){if(!D)return;const c=D.card;D=null;AS=0;c.classList.remove("d
  [...document.querySelectorAll("#list .ad")].forEach((el,i)=>{const id=el.dataset.aid;if(ADS[id]&&ADS[id].ord!==i+1){ADS[id].ord=i+1;queue(id,"ord",i+1)}});
  flushAll();if(SNAP&&DEFER&&!Object.keys(PEND).length){}DEFER=false;render()}
 document.addEventListener("pointerup",endDrag);document.addEventListener("pointercancel",endDrag);
+function renderPrices(){
+ const k=key(),L=Object.values(ADS).filter(a=>adM(a)===k&&amo(a)>0).sort((x,y)=>amo(y)-amo(x));
+ if(!L.length){$("pc").innerHTML='<div class="ct">أسعار الإعلانات</div><div class="prf">ما فيه إعلانات بسعر هالشهر</div>';return}
+ const mx=amo(L[0]),cnt={};L.forEach(a=>{const v=amo(a);cnt[v]=(cnt[v]||0)+1});
+ let h='<div class="ct">أسعار الإعلانات</div><div class="prl"><span class="ok">مدفوع</span><span>لم يتم الدفع</span></div>';
+ h+=L.map(a=>`<div class="pr"><span class="pn">${esc(a.name||"بدون اسم")}</span><span class="bt"><i class="${a.paid?"ok":""}" style="width:${Math.max(3,amo(a)/mx*100)}%"></i></span><span class="pv">${fmt(amo(a))}</span></div>`).join("");
+ h+='<div class="prf"><b>تكرار الأسعار</b><br>'+Object.entries(cnt).sort((x,y)=>y[1]-x[1]||y[0]-x[0]).map(([v,c])=>`${fmt(+v)} SAR × <b>${c}</b>`).join(" &nbsp;·&nbsp; ")+"</div>";
+ $("pc").innerHTML=h}
 function renderCal(){
  const y=cur.getFullYear(),m=cur.getMonth(),k=key(),first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),t=todayS(),ev={};
  Object.values(ADS).forEach(a=>{[["shoot","تصوير"],["pub","نشر"]].forEach(([f,l])=>{const d=a[f];if(d&&String(d).slice(0,7)===k){const n=+String(d).slice(8,10);(ev[n]=ev[n]||[]).push({n:a.name||"بدون اسم",f,l})}})});
