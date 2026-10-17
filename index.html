@@ -32,6 +32,10 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .ad input{font:inherit;font-size:14px;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:9px 11px;width:100%;min-width:0}
 .ad input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;height:42px;line-height:1.2;text-align:start}
 .ad input[type=date]::-webkit-date-and-time-value{text-align:start;min-width:0}
+.sl{font-size:11px;color:var(--mut);margin-top:12px}
+.sl+.st{margin-top:4px}
+.ad select{font:inherit;font-size:14px;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:9px 11px;width:100%;min-width:0;height:42px;margin-top:3px;-webkit-appearance:none;appearance:none}
+.ad select:focus{outline:2px solid var(--ac2)}
 .ad input:focus{outline:2px solid var(--ac2)}
 .ad .nm{font-weight:700;font-size:15px;margin-bottom:8px}
 .g2{display:flex;gap:8px;margin-top:8px}
@@ -49,6 +53,9 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .dl{border:0;background:none;color:var(--mut);font:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px}
 .dl[data-arm]{color:#d0455a;font-weight:700}
 .empty{text-align:center;color:var(--mut);font-size:13px;margin:28px 0}
+.dw{position:relative;display:block}
+.dw input[type=date]{padding-inline-end:34px}
+.cx{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:50%;background:var(--soft);color:var(--ac);font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
 #lg{position:fixed;inset:0;z-index:10;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px;overflow:auto}
 #lg.on{display:flex}
 #lf{visibility:hidden;width:100%;max-width:360px;background:var(--card);border:1px solid var(--ln);border-radius:28px;padding:24px 20px;text-align:center}
@@ -69,11 +76,10 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
  <div class="ph">@by.sahaab</div>
  <h1>Ads Manager</h1>
  <div class="mn"><button id="pv" type="button" aria-label="Previous month">‹</button><div><b id="mt"></b><span class="chip" id="ms"></span></div><button id="nx" type="button" aria-label="Next month">›</button></div>
- <div class="stats"><div><b id="tt">0</b><span>Total ads (SAR)</span></div><div><b id="tg">0</b><span>Ads</span></div></div>
+ <div class="stats"><div><b id="tt">0</b><span>مجموع الإعلانات (SAR)</span></div><div><b id="tg">0</b><span>عدد الإعلانات</span></div></div>
  <p class="nt" id="nt"></p>
 </div>
-<button class="add" id="add" type="button">+ Add ad</button>
-<datalist id="types"><option>Restaurant</option><option>Clinic</option><option>Makeup</option><option>Skin Care</option><option>Hair Care</option><option>Lashes &amp; Nails</option><option>Other</option></datalist>
+<button class="add" id="add" type="button">+ إضافة إعلان</button>
 <div id="list"></div>
 <div class="bn" id="bn"><span id="bnt"></span> <button class="so" id="so" type="button">Sign out</button></div>
 <div id="lg" class="on"><form id="lf" autocomplete="on">
@@ -90,6 +96,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {getFirestore,collection,doc,setDoc,updateDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 const CFG={apiKey:"AIzaSyCX7gB-o48Kl-QxdnaR_liqxrDxAGBrJzc",authDomain:"ads-manager-c4c00.firebaseapp.com",projectId:"ads-manager-c4c00",storageBucket:"ads-manager-c4c00.firebasestorage.app",messagingSenderId:"197640778417",appId:"1:197640778417:web:46a165b0bee4ca15e46890"};
+const TYPES=["منزلي","عيادات","تغطية"];
 const RATE=.3,$=i=>document.getElementById(i);
 let ADS={},SNAP=null,DEFER=false,DIRTY=false,RO=false,MODE="local",PEND={},TM={};
 let cur=new Date();cur=new Date(cur.getFullYear(),cur.getMonth(),1);
@@ -105,7 +112,7 @@ function fail(){note("Couldn’t save — you may have view-only access")}
 function queue(id,f,v){DIRTY=true;PEND[id]=Object.assign(PEND[id]||{},{[f]:v});clearTimeout(TM[id]);TM[id]=setTimeout(()=>flush(id),600)}
 function flush(id){const p=PEND[id];if(!p)return;delete PEND[id];clearTimeout(TM[id]);store.upd(id,p).catch(fail)}
 function flushAll(){Object.keys(PEND).forEach(flush)}
-const inList=()=>{const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&a.matches("input")};
+const inList=()=>{const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&a.matches("input,select")};
 function totals(){
  const k=key(),L=Object.entries(ADS).filter(([i,a])=>adM(a)===k);
  const t=L.reduce((s,[i,a])=>s+amo(a),0);
@@ -116,11 +123,13 @@ function card(id,a){
  const d=RO?" disabled":"",t=todayS();
  const st=a.p?["Posted","pub"]:a.pub?(a.pub<=t?["Published","pub"]:["Scheduled",""]):a.shoot?(a.shoot<=t?["Shot",""]:["To shoot",""]):["Draft",""];
  const f=(n,x)=>`data-id="${id}" data-f="${n}"${x||""}${d}`;
+ const opts=['<option value="">اختاري النوع</option>'].concat([...TYPES,...(a.type&&!TYPES.includes(a.type)?[a.type]:[])].map(ty=>`<option${ty===a.type?" selected":""}>${esc(ty)}</option>`)).join("");
  return `<div class="ad"><input class="nm" ${f("name",' placeholder="Ad name" value="'+esc(a.name)+'"')}>
-<div class="g2"><label>Amount (SAR)<input type="number" inputmode="decimal" min="0" step="any" ${f("amount",' value="'+(a.amount==null?"":esc(a.amount))+'"')}></label>
-<label>Type<input list="types" ${f("type",' value="'+esc(a.type)+'"')}></label></div>
-<div class="g2"><label>Shoot date<input type="date" ${f("shoot",' value="'+esc(a.shoot)+'"')}></label>
-<label>Publish date<input type="date" ${f("pub",' value="'+esc(a.pub)+'"')}></label></div>
+<div class="g2"><label>السعر (SAR)<input type="number" inputmode="decimal" min="0" step="any" ${f("amount",' value="'+(a.amount==null?"":esc(a.amount))+'"')}></label>
+<label>النوع<select ${f("type")}>${opts}</select></label></div>
+<div class="g2"><label>تاريخ التصوير<span class="dw"><input type="date" ${f("shoot",' value="'+esc(a.shoot)+'"')}>${RO||!a.shoot?"":`<button type="button" class="cx" data-clr="${id}|shoot" aria-label="Clear date">×</button>`}</span></label>
+<label>تاريخ النشر<span class="dw"><input type="date" ${f("pub",' value="'+esc(a.pub)+'"')}>${RO||!a.pub?"":`<button type="button" class="cx" data-clr="${id}|pub" aria-label="Clear date">×</button>`}</span></label></div>
+<div class="sl">Status</div>
 <div class="st">${[["s","تصوير"],["e","مونتاج"],["p","نُشر"]].map(([n,l])=>`<label><input type="checkbox" ${f(n,a[n]?" checked":"")}>${l}</label>`).join("")}</div>
 <div class="fo"><span class="pill ${st[1]}">${st[0]}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
 }
@@ -138,10 +147,11 @@ function render(){
 document.addEventListener("input",e=>{const t=e.target,f=t.dataset&&t.dataset.f;if(!f)return;const id=t.dataset.id;if(!ADS[id])return;
  let v=t.type==="checkbox"?t.checked:t.value;if(f==="amount")v=v===""?null:parseFloat(v);ADS[id][f]=v;queue(id,f,v);totals()});
 document.addEventListener("change",e=>{const t=e.target,f=t.dataset&&t.dataset.f;if(f==="shoot"||f==="pub"||f==="s"||f==="e"||f==="p"){flushAll();render()}});
-document.addEventListener("focusout",()=>{setTimeout(()=>{if(inList())return;flushAll();if(DEFER&&!DIRTY&&SNAP)ADS=SNAP;DEFER=false;DIRTY=false;render()},60)});
+document.addEventListener("focusout",()=>{setTimeout(()=>{if(inList())return;document.querySelectorAll("#list input[type=date]").forEach(el=>{const id=el.dataset.id,f=el.dataset.f;if(ADS[id]&&(ADS[id][f]||"")!==el.value){ADS[id][f]=el.value;queue(id,f,el.value)}});flushAll();if(DEFER&&!DIRTY&&SNAP)ADS=SNAP;DEFER=false;DIRTY=false;render()},60)});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-del]");if(!b)return;
  if(b.dataset.arm){const id=b.dataset.del;delete ADS[id];store.del(id).catch(fail);render()}
  else{b.dataset.arm=1;b.querySelector("span").textContent="Tap again";setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.querySelector("span").textContent="Delete"}},3000)}});
+document.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest("[data-clr]");if(!c)return;const [id,f]=c.dataset.clr.split("|");if(!ADS[id])return;ADS[id][f]="";queue(id,f,"");flushAll();render()});
 $("add").onclick=()=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
  const a={name:"",amount:null,type:"",shoot:"",pub:"",m:key()};ADS[id]=a;store.set(id,a).catch(fail);render();
  const el=document.querySelector('[data-id="'+id+'"][data-f="name"]');if(el)el.focus()};
