@@ -45,7 +45,11 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .cd{min-height:64px;background:var(--bg);border-radius:12px;padding:4px 3px;display:flex;flex-direction:column;gap:2px;overflow:hidden}
 .cd.e{background:transparent}
 .cd.has{background:var(--soft);box-shadow:0 0 0 1px var(--ac2) inset;cursor:pointer}
-.cd.td{outline:2px solid var(--ac)}
+.cd.td{outline:2px solid var(--ac);background:var(--soft)}
+.cd.td .dn{background:var(--ac);color:#fff;border-radius:999px;padding:0 6px;align-self:flex-start}
+.cd.td .tl{font-size:8px;font-weight:700;color:var(--ac)}
+.nxt{margin:10px 6px 0;background:var(--soft);border:1px solid var(--ac2);border-radius:14px;padding:8px 12px;font-size:12.5px;text-align:center}
+.nxt b{color:var(--ac)}
 .cd.sel{box-shadow:0 0 0 2px var(--ac) inset}
 .dn{font-size:11px;font-weight:700;color:var(--mut)}
 .cd.has .dn{color:var(--ac)}
@@ -220,10 +224,12 @@ function renderCal(){
  const y=cur.getFullYear(),m=cur.getMonth(),k=key(),first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),t=todayS(),ev={};
  Object.values(ADS).forEach(a=>{[["shoot","تصوير"],["pub","نشر"]].forEach(([f,l])=>{const d=a[f];if(d&&String(d).slice(0,7)===k){const n=+String(d).slice(8,10);(ev[n]=ev[n]||[]).push({n:a.name||"بدون اسم",f,l})}})});
  const H=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
- let h='<div class="ct">تقويم الشهر</div><div class="lg"><span class="dt s"></span>تصوير<span class="dt p"></span>نشر</div><div class="cg">'+H.map(x=>`<div class="ch">${x}</div>`).join("");
+ const up=[];Object.values(ADS).forEach(a=>{[["shoot","تصوير"],["pub","نشر"]].forEach(([f,l])=>{if(a[f]&&String(a[f])>=t)up.push({d:String(a[f]).slice(0,10),l,n:a.name||"بدون اسم"})})});up.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);
+ let nx="";if(up.length){const f=up[0],df=Math.round((new Date(f.d+"T00:00:00")-new Date(t+"T00:00:00"))/864e5);nx=`<div class="nxt">أقرب موعد: <b>${f.l} ${esc(f.n)}</b> — ${df===0?"اليوم":df===1?"بكرة":"بعد "+df+" يوم"} (${f.d.slice(8,10)}/${f.d.slice(5,7)})</div>`}
+ let h=nx+'<div class="ct">تقويم الشهر</div><div class="lg"><span class="dt s"></span>تصوير<span class="dt p"></span>نشر</div><div class="cg">'+H.map(x=>`<div class="ch">${x}</div>`).join("");
  for(let i=0;i<first;i++)h+='<div class="cd e"></div>';
  for(let d=1;d<=dim;d++){const e=ev[d]||[],ds=k+"-"+pad(d);
-  h+=`<div class="cd${e.length?" has":""}${ds===t?" td":""}${SEL===d?" sel":""}" ${e.length?'data-day="'+d+'"':""}><span class="dn">${d}</span>`+e.slice(0,2).map(x=>`<span class="cc ${x.f==="pub"?"p":"s"}">${esc(x.n)}</span>`).join("")+(e.length>2?`<span class="cm">+${e.length-2}</span>`:"")+"</div>"}
+  h+=`<div class="cd${e.length?" has":""}${ds===t?" td":""}${SEL===d?" sel":""}" ${e.length?'data-day="'+d+'"':""}><span class="dn">${d}</span>${ds===t?'<span class="tl">اليوم</span>':""}`+e.slice(0,2).map(x=>`<span class="cc ${x.f==="pub"?"p":"s"}">${esc(x.n)}</span>`).join("")+(e.length>2?`<span class="cm">+${e.length-2}</span>`:"")+"</div>"}
  h+="</div>";
  if(SEL&&ev[SEL])h+=`<div class="cdt"><b>${SEL} ${$("mt").textContent}</b>`+ev[SEL].map(x=>`<div><span class="dt ${x.f==="pub"?"p":"s"}"></span>${x.l}: ${esc(x.n)}</div>`).join("")+"</div>";
  $("cal").innerHTML=h}
