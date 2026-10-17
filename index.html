@@ -48,6 +48,7 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
 .st label:has(input:disabled){pointer-events:none}
 .fo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--ln);font-size:13px;color:var(--mut)}
 .fo b{color:var(--ac)}
+.fo{flex-wrap:wrap}
 .pill{font-size:11px;font-weight:700;border-radius:10px;padding:2px 10px;background:var(--soft);color:var(--ac)}
 .pill.pub{background:var(--ok);color:#fff}
 .dl{border:0;background:none;color:var(--mut);font:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px}
@@ -76,7 +77,7 @@ h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:60
  <div class="ph">@by.sahaab</div>
  <h1>Ads Manager</h1>
  <div class="mn"><button id="pv" type="button" aria-label="Previous month">‹</button><div><b id="mt"></b><span class="chip" id="ms"></span></div><button id="nx" type="button" aria-label="Next month">›</button></div>
- <div class="stats"><div><b id="tt">0</b><span>مجموع الإعلانات (SAR)</span></div><div><b id="tg">0</b><span>عدد الإعلانات</span></div></div>
+ <div class="stats"><div><b id="tt">0</b><span>مجموع الإعلانات (SAR)</span></div><div><b id="ta">0</b><span>نسبة إدارة الأعمال ٣٠٪ (SAR)</span></div><div><b id="tg">0</b><span>عدد الإعلانات</span></div></div>
  <p class="nt" id="nt"></p>
 </div>
 <button class="add" id="add" type="button">+ إضافة إعلان</button>
@@ -116,7 +117,7 @@ const inList=()=>{const a=document.activeElement;return a&&a.closest&&a.closest(
 function totals(){
  const k=key(),L=Object.entries(ADS).filter(([i,a])=>adM(a)===k);
  const t=L.reduce((s,[i,a])=>s+amo(a),0);
- $("tt").textContent=fmt(t);$("tg").textContent=L.length;
+ $("tt").textContent=fmt(t);$("tg").textContent=L.length;$("ta").textContent=fmt(t*RATE);
  document.querySelectorAll("[data-ag]").forEach(el=>{const a=ADS[el.dataset.ag];if(a)el.textContent=fmt(amo(a)*RATE)+" SAR"});
 }
 function card(id,a){
@@ -131,7 +132,7 @@ function card(id,a){
 <label>تاريخ النشر<span class="dw"><input type="date" ${f("pub",' value="'+esc(a.pub)+'"')}>${RO||!a.pub?"":`<button type="button" class="cx" data-clr="${id}|pub" aria-label="Clear date">×</button>`}</span></label></div>
 <div class="sl">الحالة</div>
 <div class="st">${[["s","تصوير"],["e","مونتاج"],["p","نُشر"]].map(([n,l])=>`<label><input type="checkbox" ${f(n,a[n]?" checked":"")}>${l}</label>`).join("")}</div>
-<div class="fo"><span class="pill ${st[1]}">${st[0]}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
+<div class="fo"><span>نسبة إدارة الأعمال ٣٠٪: <b data-ag="${id}"></b></span><span class="pill ${st[1]}">${st[0]}</span>${RO?"":`<button class="dl" type="button" data-del="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Delete</span></button>`}</div></div>`;
 }
 function render(){
  const k=key(),now=new Date(),end=new Date(cur.getFullYear(),cur.getMonth()+1,0,23,59,59);
